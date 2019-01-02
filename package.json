@@ -1,0 +1,17 @@
+{
+  "name": "lottery-scratch",
+  "version": "0.0.1",
+  "keywords": [
+    "scratch",
+    "scratch-card",
+    "刮刮乐",
+    "抽奖"
+  ],
+  "description": "create scratch",
+  "repository": {
+    "url": "https://github.com/frontlich/lottery-scratch.git"
+  },
+  "main": "index.js",
+  "author": "frontlich",
+  "license": "MIT"
+}
