@@ -1,25 +1,19 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var Scratch = /** @class */ (function () {
-    function Scratch(config) {
+    function Scratch(first, second, third) {
         this._config = {
             lineWidth: 40,
-            threshold: 0.3
+            threshold: 0.3,
+            fillStyle: '#ccc'
         };
         this._canvas = document.createElement('canvas');
         this._ctx = this._canvas.getContext('2d');
         this._isFirstStart = true;
         this.onScrachEnd = Function.prototype;
         this.onScrachStart = Function.prototype;
-        config && this.init(config);
+        first && this.init(first, second, third);
     }
-    Object.defineProperty(Scratch.prototype, "context", {
-        get: function () {
-            return this._ctx;
-        },
-        enumerable: true,
-        configurable: true
-    });
     Object.defineProperty(Scratch.prototype, "_isMobile", {
         get: function () {
             return /Android|webOS|iPhone|iPod|BlackBerry/i.test(navigator.userAgent);
@@ -27,13 +21,16 @@ var Scratch = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
-    Scratch.prototype.init = function (config, autoDraw) {
+    Object.defineProperty(Scratch.prototype, "context", {
+        get: function () {
+            return this._ctx;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Scratch.prototype._init = function (el, config, autoDraw) {
         if (autoDraw === void 0) { autoDraw = true; }
-        if (!config.el || !config.id) {
-            throw new Error('element or id is need');
-        }
-        Object.assign(this._config, config);
-        var el = config.el || document.getElementById(config.id);
+        Object.assign(this._config, config || {});
         var clientRect = el.getBoundingClientRect();
         this._rect = clientRect;
         el.style.position = 'relative';
@@ -47,15 +44,34 @@ var Scratch = /** @class */ (function () {
             cursor: 'pointer'
         });
         el.appendChild(this._canvas);
-        autoDraw && this.drawMask(config.fillStyle);
+        autoDraw && this.drawMask();
         return this;
     };
+    Scratch.prototype.init = function (first, second, third) {
+        if (first instanceof HTMLElement) {
+            return this._init(first, second, third);
+        }
+        else if (typeof first === 'string') {
+            return this._init(document.getElementById(first), second, third);
+        }
+        else {
+            if (!first || !first.el || !first.id) {
+                throw new Error('element or id is need');
+            }
+            return this._init(first.el || document.getElementById(first.id), first, second);
+        }
+    };
+    Scratch.prototype.setConfig = function (first, second) {
+        var _a;
+        Object.assign(this._config, typeof first === 'string' ? (_a = {}, _a[first] = second, _a) : first);
+    };
+    ;
     /**
      * 画遮罩层
      * @param fillStyle 填充颜色
      */
     Scratch.prototype.drawMask = function (fillStyle) {
-        if (fillStyle === void 0) { fillStyle = '#ccc'; }
+        if (fillStyle === void 0) { fillStyle = this._config.fillStyle; }
         var ctx = this._ctx;
         this._isFirstStart = true;
         ctx.fillStyle = fillStyle;

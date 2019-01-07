@@ -1,21 +1,25 @@
 export interface ScratchConfig {
+  /** 刮线的宽度，默认40 */
+  lineWidth?: number;
+  /** 全显阈值 0 ~ 1，默认0.3 */
+  threshold?: number;
+  /** 遮罩层颜色，默认#ccc */
+  fillStyle?: string;
+}
+
+export interface ScratchConfigWidthDOM extends ScratchConfig {
   /** dom的id */
   id?: string;
   /** dom元素 */
   el?: HTMLElement;
-  /**  刮线的宽度 */
-  lineWidth?: number;
-  /** 全显阈值 0 ~ 1 */
-  threshold?: number;
-  /** 遮罩层颜色 */
-  fillStyle?: string;
 }
 
 export class Scratch {
 
   private _config: ScratchConfig = {
     lineWidth: 40,
-    threshold: 0.3
+    threshold: 0.3,
+    fillStyle: '#ccc'
   };
   private _canvas = document.createElement('canvas');
   private _ctx: CanvasRenderingContext2D = this._canvas.getContext('2d');
@@ -23,28 +27,27 @@ export class Scratch {
   private _startPoint: [number, number];
   private _isFirstStart = true;
 
-  onScrachEnd = Function.prototype;
-  onScrachStart = Function.prototype;
+  private get _isMobile() {
+    return /Android|webOS|iPhone|iPod|BlackBerry/i.test(navigator.userAgent)
+  }
 
   get context() {
     return this._ctx;
   }
 
-  get _isMobile() {
-    return /Android|webOS|iPhone|iPod|BlackBerry/i.test(navigator.userAgent)
+  onScrachEnd = Function.prototype;
+  onScrachStart = Function.prototype;
+
+  constructor(id?: string, config?: ScratchConfig, autoDraw?: boolean);
+  constructor(el?: HTMLElement, config?: ScratchConfig);
+  constructor(config?: ScratchConfigWidthDOM);
+  constructor(first?: any, second?: any, third?: any) {
+    first && this.init(first, second, third);
   }
 
-  constructor(config?: ScratchConfig) {
-    config && this.init(config);
-  }
+  private _init(el: HTMLElement, config: ScratchConfig, autoDraw: boolean = true) {
+    Object.assign(this._config, config || {});
 
-  init(config: ScratchConfig, autoDraw = true) {
-    if (!config.el || !config.id) {
-      throw new Error('element or id is need');
-    }
-    Object.assign(this._config, config);
-
-    const el = config.el || document.getElementById(config.id);
     const clientRect = el.getBoundingClientRect();
     this._rect = clientRect;
     el.style.position = 'relative';
@@ -61,15 +64,54 @@ export class Scratch {
     });
 
     el.appendChild(this._canvas);
-    autoDraw && this.drawMask(config.fillStyle);
+    autoDraw && this.drawMask();
     return this;
   }
+
+  /**
+   * 初始化
+   * @param id DOM的id
+   * @param config 配置项
+   * @param autoDraw 是否自动画出遮罩层，默认是
+   */
+  init(id: string, config?: ScratchConfig, autoDraw?: boolean): Scratch;
+  /**
+   * 初始化
+   * @param el DOM元素
+   * @param config 配置项
+   * @param autoDraw 是否自动画出遮罩层，默认是
+   */
+  init(el: HTMLElement, config?: ScratchConfig, autoDraw?: boolean): Scratch;
+  /**
+   * 初始化
+   * @param config 配置项
+   * @param autoDraw 是否自动画出遮罩层，默认是
+   */
+  init(config: ScratchConfigWidthDOM, autoDraw?: boolean): Scratch;
+  init(first: any, second?: any, third?: any) {
+    if (first instanceof HTMLElement) {
+      return this._init(first, second, third);
+    } else if (typeof first === 'string') {
+      return this._init(document.getElementById(first), second, third);
+    } else {
+      if (!first || !first.el || !first.id) {
+        throw new Error('element or id is need');
+      }
+      return this._init(first.el || document.getElementById(first.id), first, second);
+    }
+  }
+
+  setConfig(name: 'lineWidth' | 'threshold' | 'fillStyle', value: number | string): void;
+  setConfig(config: ScratchConfig): void;
+  setConfig(first: any, second?: any) {
+    Object.assign(this._config, typeof first === 'string' ? { [first]: second } : first);
+  };
 
   /**
    * 画遮罩层
    * @param fillStyle 填充颜色
    */
-  drawMask(fillStyle: string | CanvasGradient | CanvasPattern = '#ccc') {
+  drawMask(fillStyle: string | CanvasGradient | CanvasPattern = this._config.fillStyle) {
     const ctx = this._ctx;
     this._isFirstStart = true;
     ctx.fillStyle = fillStyle;
