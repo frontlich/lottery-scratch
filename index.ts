@@ -94,7 +94,7 @@ export class Scratch {
     } else if (typeof first === 'string') {
       return this._init(document.getElementById(first), second, third);
     } else {
-      if (!first || !first.el || !first.id) {
+      if (!first || (!first.el && !first.id)) {
         throw new Error('element or id is need');
       }
       return this._init(first.el || document.getElementById(first.id), first, second);
@@ -133,7 +133,7 @@ export class Scratch {
         this.touchMove([e.targetTouches[0].pageX - rect.left, e.targetTouches[0].pageY - rect.top]);
         return false;
       }
-      document.ontouchend = this.touchEnd.bind(this);
+      el.ontouchend = this.touchEnd.bind(this);
     } else {
       el.onmousedown = (e) => {
         e.preventDefault();
@@ -145,20 +145,20 @@ export class Scratch {
         this.touchMove([e.offsetX, e.offsetY]);
         return false;
       }
-      document.onmouseup = this.touchEnd.bind(this);
+      el.onmouseout = el.onmouseup = (e) => {
+        e.preventDefault();
+        this.touchEnd();
+        return false;
+      }
     }
   }
 
   private _unLoadEvent(el: HTMLCanvasElement) {
-    el.ontouchstart = null;
-    el.ontouchmove = null;
-    document.ontouchend = null;
-    el.onmousedown = null;
-    el.onmousemove = null;
-    document.onmouseup = null;
+    el.ontouchstart = el.ontouchmove = el.ontouchend = null;
+    el.onmousedown = el.onmousemove = el.onmouseout = el.onmouseup = null;
   }
 
-  private drawLine(start: [number, number], end: [number, number]) {
+  private _drawLine(start: [number, number], end: [number, number]) {
     const ctx = this._ctx;
     ctx.beginPath();
     ctx.globalCompositeOperation = 'destination-out';
@@ -180,7 +180,7 @@ export class Scratch {
 
   private touchMove(point: [number, number]) {
     if (this._startPoint) {
-      this.drawLine(this._startPoint, point);
+      this._drawLine(this._startPoint, point);
       this._startPoint = point;
     }
   }

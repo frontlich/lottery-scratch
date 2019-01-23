@@ -1,6 +1,11 @@
 {
   "name": "lottery-scratch",
-  "version": "0.0.2",
+  "version": "0.0.3",
+  "scripts": {
+    "start": "",
+    "build": "webpack",
+    "prepublish": "tsc"
+  },
   "keywords": [
     "scratch",
     "scratch-card",
@@ -13,5 +18,10 @@
   },
   "main": "index.js",
   "author": "frontlich",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "html-webpack-plugin": "^3.2.0",
+    "webpack": "^4.28.4",
+    "webpack-cli": "^3.2.1"
+  }
 }

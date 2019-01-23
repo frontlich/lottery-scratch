@@ -55,7 +55,7 @@ var Scratch = /** @class */ (function () {
             return this._init(document.getElementById(first), second, third);
         }
         else {
-            if (!first || !first.el || !first.id) {
+            if (!first || (!first.el && !first.id)) {
                 throw new Error('element or id is need');
             }
             return this._init(first.el || document.getElementById(first.id), first, second);
@@ -93,7 +93,7 @@ var Scratch = /** @class */ (function () {
                 _this.touchMove([e.targetTouches[0].pageX - rect.left, e.targetTouches[0].pageY - rect.top]);
                 return false;
             };
-            document.ontouchend = this.touchEnd.bind(this);
+            el.ontouchend = this.touchEnd.bind(this);
         }
         else {
             el.onmousedown = function (e) {
@@ -106,16 +106,16 @@ var Scratch = /** @class */ (function () {
                 _this.touchMove([e.offsetX, e.offsetY]);
                 return false;
             };
-            document.onmouseup = this.touchEnd.bind(this);
+            el.onmouseout = el.onmouseup = function (e) {
+                e.preventDefault();
+                _this.touchEnd();
+                return false;
+            };
         }
     };
     Scratch.prototype._unLoadEvent = function (el) {
-        el.ontouchstart = null;
-        el.ontouchmove = null;
-        document.ontouchend = null;
-        el.onmousedown = null;
-        el.onmousemove = null;
-        document.onmouseup = null;
+        el.ontouchstart = el.ontouchmove = el.ontouchend = null;
+        el.onmousedown = el.onmousemove = el.onmouseout = el.onmouseup = null;
     };
     Scratch.prototype.drawLine = function (start, end) {
         var ctx = this._ctx;
